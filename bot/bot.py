@@ -1,14 +1,16 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from handler.registration_handler import reg_rt
-from handler.menu_handler import menu_rt
+from aiogram.fsm.storage.memory import MemoryStorage
 
+from handler import menu, registration
 from config import TOKEN
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(storage=MemoryStorage())
 
-dp.include_routers(reg_rt, menu_rt)
+dp.include_router(registration.router)
+dp.include_router(menu.router)
+
 
 async def main():
     await dp.start_polling(bot)

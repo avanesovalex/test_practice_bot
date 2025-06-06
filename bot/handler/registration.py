@@ -6,22 +6,22 @@ from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
-from states import Registration
+from states import Registration, Menu
 
-reg_rt = Router()
+router = Router()
 
-@reg_rt.message(Command('start'))
+@router.message(Command('start'))
 async def on_start(message: Message, state: FSMContext):
     await message.answer('Добро пожаловать!\n\nЧтобы начать пользоваться нашим ботом, пройдите небольшую регистрацию🗒\n\nВведите ваше ФИО:')
     await state.set_state(Registration.wait_for_name)
 
-@reg_rt.message(Registration.wait_for_name)
+@router.message(Registration.wait_for_name)
 async def get_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     await message.answer('Отлично! Теперь введите вашу дату рождения в формате ДД.ММ.ГГГГ (например: 06.02.2001):')
     await state.set_state(Registration.wait_for_birthdate)
 
-@reg_rt.message(Registration.wait_for_birthdate)
+@router.message(Registration.wait_for_birthdate)
 async def get_birthdate(message: Message, state: FSMContext):
     date_pattern = r'^\d{2}\.\d{2}\.\d{4}$'
 
@@ -56,14 +56,23 @@ async def get_birthdate(message: Message, state: FSMContext):
     await message.answer('Последний шаг! Отправьте ваш номер телефона:', reply_markup=keyboard)
     await state.set_state(Registration.wait_for_phone)
 
-@reg_rt.message(Registration.wait_for_phone, F.contact)
+@router.message(Registration.wait_for_phone, F.contact)
 async def get_phone(message: Message, state: FSMContext):
     phone_number = message.contact.phone_number # type: ignore
     user_data = await state.get_data()
 
-    await message.answer(f'Регистрация успешно завершена!\n\nФИО: {user_data['name']}\nДата рождения: {user_data['birthdate']}\nНомер телефона: +{phone_number}', reply_markup=ReplyKeyboardRemove())
-    await state.clear()
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text='Оставить заявку🗒')],
+            [KeyboardButton(text='Контакты📱')],
+            [KeyboardButton(text='Информация о компанииℹ')]
+        ],
+        resize_keyboard=True
+    )
 
-@reg_rt.message(Registration.wait_for_phone)
+    await message.answer(f'Регистрация успешно завершена!\n\nФИО: {user_data['name']}\nДата рождения: {user_data['birthdate']}\nНомер телефона: +{phone_number}', reply_markup=keyboard)
+    await state.set_state(Menu.in_menu)
+
+@router.message(Registration.wait_for_phone)
 async def get_phone_invalid(message: Message):
     await message.answer('Пожалуйста, отправьте номер телефона используя кнопку ниже:')

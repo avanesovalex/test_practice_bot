@@ -6,4 +6,5 @@ class Registration(StatesGroup):
     wait_for_phone = State()
 
 class Menu(StatesGroup):
+    in_menu = State()
     
