@@ -1,15 +1,9 @@
 from aiogram import Router, F
-from aiogram.types import (Message, ReplyKeyboardMarkup, KeyboardButton,
-                           InlineKeyboardMarkup, InlineKeyboardButton)
-from aiogram.fsm.context import FSMContext
+from aiogram.types import (Message, InlineKeyboardMarkup, InlineKeyboardButton)
 
 from states import Menu
 
 router = Router()
-
-@router.message(Menu.in_menu, F.text.lower() =='оставить заявку🗒')
-async def write_request(message: Message):
-    await message.answer('Блок в разработке🚧')
 
 @router.message(Menu.in_menu, F.text.lower() =='контакты📱')
 async def get_contacts(message: Message):

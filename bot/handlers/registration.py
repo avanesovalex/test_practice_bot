@@ -7,6 +7,7 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKey
 from aiogram.fsm.context import FSMContext
 
 from states import Registration, Menu
+from database.repositories.user import add_user
 
 router = Router()
 
@@ -60,6 +61,8 @@ async def get_birthdate(message: Message, state: FSMContext):
 async def get_phone(message: Message, state: FSMContext):
     phone_number = message.contact.phone_number # type: ignore
     user_data = await state.get_data()
+    await add_user(message.from_user.id, user_data['name'], # type: ignore
+                   user_data['birthdate'], phone_number)
 
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
