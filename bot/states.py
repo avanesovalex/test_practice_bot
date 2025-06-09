@@ -13,4 +13,3 @@ class Request(StatesGroup):
     wait_for_text = State()
     wait_for_pic = State()
     wait_for_priority = State()
-    wait_for_send = State()
