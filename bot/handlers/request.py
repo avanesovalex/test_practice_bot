@@ -112,3 +112,7 @@ async def no_pic(message: Message, state: FSMContext):
 
     await message.answer(f'{req_msg}', reply_markup=keyboard)
     await state.set_state(Request.wait_for_send)
+
+@router.message(Request.wait_for_send, F.text.lower() == 'отправить')
+async def send_request(message: Message, state: FSMContext):
+    
