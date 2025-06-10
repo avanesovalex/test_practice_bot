@@ -6,8 +6,8 @@ from aiogram.fsm.context import FSMContext
 
 from states import Menu, Request
 from keyboards import menu_kb, category_kb, send_kb, get_priority_keyboard
-from config import PRIORITIES
-from database.repositories.requests import add_request
+from config import PRIORITIES, ADMIN_CHAT_ID
+from database.repositories.requests import add_request, get_request
 
 router = Router()
 
@@ -26,7 +26,7 @@ async def cancel(message: Message, state: FSMContext):
     await state.set_state(Menu.in_menu)
 
 @router.message(Menu.in_menu, F.text.lower() =='оставить заявку🗒')
-async def get_request(message: Message, state: FSMContext):
+async def new_request(message: Message, state: FSMContext):
     await message.answer('Выберите категорию заявки', reply_markup=category_kb)
     await state.set_state(Request.wait_for_category)
 
@@ -110,10 +110,25 @@ async def send_request(message: Message, state: FSMContext):
     user_data = await state.get_data()
     global attached_photo
     if attached_photo:
-        await add_request(message.from_user.id, user_data['category'], # type: ignore
+        request_id = await add_request(message.from_user.id, user_data['category'], # type: ignore
                           user_data['text'], user_data['photo_id'])
     else:
-        await add_request(message.from_user.id, user_data['category'], user_data['text']) # type: ignore
+        request_id = await add_request(message.from_user.id, user_data['category'], user_data['text']) # type: ignore
+
+    request = await get_request(request_id)
+    request_msg = (
+        f"📌 Номер заявки: {request['id']}\n"
+        f"👤 Пользователь: {request['full_name']}\n"
+        f"📞 Телефон: {request['phone_number']}\n"
+        f"🏷 Категория: {request['category']}\n"
+        f"🔢 Приоритет: {PRIORITIES[user_data.get('priority', 'normal')]}\n"
+        f"📝 Текст заявки:\n{request['request_text']}\n"
+    )
+
+    if request.get('photo_id'):
+        await message.bot.send_photo(ADMIN_CHAT_ID, request['photo_id'], caption=request_msg) # type: ignore
+    else:
+        await message.bot.send_message(ADMIN_CHAT_ID, request_msg) # type: ignore
 
     await message.answer('Ваша заявка успешно отправлена в поддержку! Ожидайте ответа', reply_markup=menu_kb)
     await state.set_state(Menu.in_menu)
