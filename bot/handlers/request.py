@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from states import Menu, Request
 from keyboards import menu_kb, category_kb, send_kb, get_priority_keyboard
 from config import PRIORITIES
+from database.repositories.requests import add_request
 
 router = Router()
 
@@ -15,7 +16,8 @@ router = Router()
         Request.wait_for_category,
         Request.wait_for_text,
         Request.wait_for_pic,
-        Request.wait_for_priority
+        Request.wait_for_priority,
+        Request.wait_for_send
     ),
     F.text.lower() == 'отменить')
 async def cancel(message: Message, state: FSMContext):
@@ -87,7 +89,7 @@ async def handle_priority(callback: CallbackQuery, state: FSMContext):
 async def handle_continue(callback: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     priority = user_data.get("priority", "normal")
-    await state.update_data(priority = priority)
+    await state.update_data(priority=priority)
     
     await callback.message.answer('✅Готово! Вот ваша заявка') # type: ignore
 
@@ -102,9 +104,16 @@ async def handle_continue(callback: CallbackQuery, state: FSMContext):
     else:
         await callback.message.answer(f'{req_msg}', reply_markup=send_kb) # type: ignore
     await state.set_state(Request.wait_for_send)
-    await state.set_state(Request.wait_for_send)
 
 @router.message(Request.wait_for_send, F.text.lower() == 'отправить')
 async def send_request(message: Message, state: FSMContext):
+    user_data = await state.get_data()
+    global attached_photo
+    if attached_photo:
+        await add_request(message.from_user.id, user_data['category'], # type: ignore
+                          user_data['text'], user_data['photo_id'])
+    else:
+        await add_request(message.from_user.id, user_data['category'], user_data['text']) # type: ignore
+
     await message.answer('Ваша заявка успешно отправлена в поддержку! Ожидайте ответа', reply_markup=menu_kb)
     await state.set_state(Menu.in_menu)
