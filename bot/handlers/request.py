@@ -1,13 +1,15 @@
 from aiogram import Router, F
 from aiogram.filters import or_f
 from aiogram.types import (Message, CallbackQuery,
-                           ReplyKeyboardMarkup, KeyboardButton)
+                           ReplyKeyboardMarkup, KeyboardButton,
+                           InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 
 from states import Menu, Request
 from keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
-from config import PRIORITIES, ADMIN_CHAT_ID
-from database.repositories.requests import add_request, get_request
+from config import ADMIN_CHAT_ID
+from database.repositories.requests import (add_request, add_request_tag, 
+                                            get_request, get_request_tags)
 
 router = Router()
 
@@ -110,7 +112,6 @@ async def handle_continue(callback: CallbackQuery, state: FSMContext):
     
     # Формируем сообщение с данными заявки
     req_msg = (
-        f"Категория: {user_data.get('category', 'Не указана')}\n"
         f"Теги: {', '.join(user_data.get('tags', [])) or 'Не выбраны'}\n"
         f"Текст заявки:\n{user_data.get('text', '')}"
     )
@@ -132,31 +133,60 @@ async def handle_continue(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Request.wait_for_send, F.text.lower() == 'отправить')
 async def send_request(message: Message, state: FSMContext):
-    '''
     user_data = await state.get_data()
     global attached_photo
+    
+    # Создаем базовую заявку
     if attached_photo:
-        request_id = await add_request(message.from_user.id, user_data['category'], # type: ignore
-                          user_data['text'], user_data['photo_id'])
+        request_id = await add_request(
+            user_id=message.from_user.id,  # type: ignore
+            request_text=user_data['text'],
+            photo_id=user_data['photo_id']
+        )
     else:
-        request_id = await add_request(message.from_user.id, user_data['category'], user_data['text']) # type: ignore
-
+        request_id = await add_request(
+            user_id=message.from_user.id,  # type: ignore
+            request_text=user_data['text']
+        )
+    
+    # Добавляем теги по одному
+    for tag in user_data.get('tags', []):
+        await add_request_tag(request_id, tag)
+    
+    # Получаем данные для уведомления
     request = await get_request(request_id)
+    print(request)
+    tags = await get_request_tags(request_id)
+    print(tags)
+    
+    # Формируем сообщение
     request_msg = (
-        f"📌 Номер заявки: {request['id']}\n"
-        f"👤 Пользователь: {request['full_name']}\n"
-        f"📞 Телефон: {request['phone_number']}\n"
-        f"🏷 Категория: {request['category']}\n"
-        f"🔢 Приоритет: {PRIORITIES[user_data.get('priority', 'normal')]}\n"
-        f"📝 Текст заявки:\n{request['request_text']}\n"
+        f"📌 Номер заявки: {request['id']}\n" # type: ignore
+        f"👤 Пользователь: {request['full_name']}\n" # type: ignore
+        f"📞 Телефон: {request['phone_number']}\n" # type: ignore
+        f"🏷 Теги: {', '.join(tags) if tags else 'нет'}\n"
+        f"📝 Текст:\n{request['request_text']}" # type: ignore
     )
 
-    if request.get('photo_id'):
-        await message.bot.send_photo(ADMIN_CHAT_ID, request['photo_id'], caption=request_msg) # type: ignore
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="👤 Профиль пользователя",
+                    url=f"tg://user?id={message.from_user.id}" # type: ignore
+                )
+            ]
+        ])
+    
+    # Отправка админу
+    if request.get('photo_id'): # type: ignore
+        await message.bot.send_photo(1217543203, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
     else:
-        await message.bot.send_message(ADMIN_CHAT_ID, request_msg) # type: ignore
-    '''
+        await message.bot.send_message(1217543203, request_msg, reply_markup=keyboard)  # type: ignore
+    
+    # Завершение
     await state.clear()
-
-    await message.answer('Ваша заявка успешно отправлена в поддержку! Ожидайте ответа', reply_markup=menu_kb)
+    await message.answer(
+        '✅ Заявка отправлена!',
+        reply_markup=menu_kb
+    )
     await state.set_state(Menu.in_menu)

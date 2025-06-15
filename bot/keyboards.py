@@ -11,8 +11,10 @@ get_phone_kb = ReplyKeyboardMarkup(
 
 menu_kb = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text='Оставить заявку🗒')],
-            [KeyboardButton(text='Контакты📱')],
+            [
+                KeyboardButton(text='Оставить заявку🗒'),
+                KeyboardButton(text='Контакты📱')
+            ],
             [KeyboardButton(text='Информация о компанииℹ')]
         ],
         resize_keyboard=True
