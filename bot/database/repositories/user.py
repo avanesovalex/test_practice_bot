@@ -6,3 +6,8 @@ async def add_user(user_id, full_name, birth_date, phone_number):
         ON CONFLICT (user_id) DO NOTHING''',
         user_id, full_name, birth_date, phone_number
     )
+
+async def update_last_activity(user_id):
+    await db.execute(
+        '''UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE user_id = $1;''', user_id
+    )

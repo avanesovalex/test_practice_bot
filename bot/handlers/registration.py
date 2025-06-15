@@ -72,7 +72,6 @@ async def get_phone(message: Message, state: FSMContext):
     await add_user(message.from_user.id, user_data['name'], # type: ignore
                    user_data['birthdate'], phone_number)
 
-
     await message.answer(f'Регистрация успешно завершена!\n\nФИО: {user_data['name']}\nДата рождения: {user_data['birthdate']}\nНомер телефона: {phone_number}', reply_markup=menu_kb)
     await state.set_state(Menu.in_menu)
 

@@ -6,9 +6,13 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from handlers import menu, registration, request, admin
 from config import TOKEN
 from database.db import db
+from middleware import LastActivityMiddleware
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
+
+dp.message.middleware(LastActivityMiddleware())
+dp.callback_query.middleware(LastActivityMiddleware())
 
 dp.include_router(admin.router)
 dp.include_router(registration.router)
