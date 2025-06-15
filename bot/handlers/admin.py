@@ -87,7 +87,7 @@ async def send_message(message: Message, state: FSMContext):
     # Завершение
     await state.clear()
     await message.answer(
-        '✅ Рассылка отправлена!',
+        f'✅ Рассылка отправлена!\n\nСтолько людей получили рассылку: {len(users)}',
         reply_markup=menu_kb
     )
     await state.set_state(Menu.in_menu)
