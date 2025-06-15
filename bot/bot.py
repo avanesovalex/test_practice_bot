@@ -3,13 +3,14 @@ import asyncpg
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from handlers import menu, registration, request
+from handlers import menu, registration, request, admin
 from config import TOKEN
 from database.db import db
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+dp.include_router(admin.router)
 dp.include_router(registration.router)
 dp.include_router(menu.router)
 dp.include_router(request.router)

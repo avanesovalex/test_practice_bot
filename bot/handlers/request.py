@@ -66,7 +66,7 @@ async def get_pic(message: Message, state: FSMContext):
     attached_photo = True
     await state.update_data(photo_id=message.photo[-1].file_id) # type: ignore
 
-    await message.answer('Ваш скриншот удачно прикреплен\nВыберите теги к вашей заявке',
+    await message.answer('Ваш скриншот успешно прикреплен\nВыберите теги к вашей заявке',
                          reply_markup=get_tags_keyboard())
     await state.set_state(Request.wait_for_tags)
 
@@ -155,9 +155,7 @@ async def send_request(message: Message, state: FSMContext):
     
     # Получаем данные для уведомления
     request = await get_request(request_id)
-    print(request)
     tags = await get_request_tags(request_id)
-    print(tags)
     
     # Формируем сообщение
     request_msg = (
@@ -179,9 +177,9 @@ async def send_request(message: Message, state: FSMContext):
     
     # Отправка админу
     if request.get('photo_id'): # type: ignore
-        await message.bot.send_photo(1217543203, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
+        await message.bot.send_photo(ADMIN_CHAT_ID, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
     else:
-        await message.bot.send_message(1217543203, request_msg, reply_markup=keyboard)  # type: ignore
+        await message.bot.send_message(ADMIN_CHAT_ID, request_msg, reply_markup=keyboard)  # type: ignore
     
     # Завершение
     await state.clear()
