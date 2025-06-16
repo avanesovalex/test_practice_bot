@@ -11,8 +11,7 @@ router = Router()
 
 @router.message(
     or_f(
-        Admin.wait_for_text,
-        Admin.wait_for_pic,
+        Admin.wait_for_message,
         Admin.wait_for_send
     ),
     F.text.lower() == 'отменить')
@@ -30,56 +29,35 @@ async def on_admin_cmd(message: Message, state: FSMContext):
             ],
             resize_keyboard=True
         )
-        await message.answer('Введите текст рассылки:', reply_markup=keyboard)
-        await state.set_state(Admin.wait_for_text)
+        await message.answer('Отправьте вашу рассылку:', reply_markup=keyboard)
+        await state.set_state(Admin.wait_for_message)
     else:
         await message.answer('У вас нет необходимых прав, чтобы воспользоваться данной командой')
 
-@router.message(Admin.wait_for_text)
-async def get_text(message: Message, state: FSMContext):
-    await state.update_data(text=message.html_text)
-    keyboard = ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text='Продолжить без фото')],
-            [KeyboardButton(text='Отменить')]
-        ],
-        resize_keyboard=True,
-        one_time_keyboard=True
-    )
-    
-    await message.answer('Прикрепите фото', reply_markup=keyboard)
-    await state.set_state(Admin.wait_for_pic)
+@router.message(Admin.wait_for_message)
+async def get_message(message: Message, state: FSMContext):
+    await message.answer('Вот ваша рассылка:')
+    if message.photo:
+        await state.update_data(text = message.html_text if message.caption else '')
+        await state.update_data(photo_id=message.photo[-1].file_id)
+        
+        data = await state.get_data()
+        await message.answer_photo(data['photo_id'], data['text'], reply_markup=send_kb, parse_mode='html')
+    else:
+        await state.update_data(text = message.html_text)
+        await state.update_data(photo_id=None)
 
-@router.message(Admin.wait_for_pic, F.photo)
-async def get_pic(message: Message, state: FSMContext):
-    global attached_photo
-    attached_photo = True
+        data = await state.get_data()
+        await message.answer(data['text'], reply_markup=send_kb, parse_mode='html')
 
-    await state.update_data(photo_id=message.photo[-1].file_id) # type: ignore
-    data = await state.get_data()
-
-    await message.answer('Ваше фото успешно прикреплено\nВот ваша рассылка:')
-    await message.answer_photo(data['photo_id'], data['text'], reply_markup=send_kb, parse_mode='html')
-    await state.set_state(Admin.wait_for_send)
-
-@router.message(Admin.wait_for_pic, F.text.lower() == 'продолжить без фото')
-async def no_pic(message: Message, state: FSMContext):
-    global attached_photo
-    attached_photo = False
-
-    data = await state.get_data()
-
-    await message.answer('Вы решили продолжить без фото\nВот ваша рассылка:')
-    await message.answer(data['text'], reply_markup=send_kb, parse_mode='html')
     await state.set_state(Admin.wait_for_send)
 
 @router.message(Admin.wait_for_send, F.text.lower() == 'отправить')
 async def send_message(message: Message, state: FSMContext):
-    global attached_photo
     users = await get_all_users()
     data = await state.get_data()
-    for user_id in users: # type: ignore
-        if attached_photo:
+    for user_id in users:
+        if data['photo_id']:
             await message.bot.send_photo(user_id, data['photo_id'], caption=data['text'], parse_mode='html') # type: ignore
         else:
             await message.bot.send_message(user_id, data['text'], parse_mode='html') # type: ignore

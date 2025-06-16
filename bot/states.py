@@ -16,6 +16,5 @@ class Request(StatesGroup):
     wait_for_send = State()
 
 class Admin(StatesGroup):
-    wait_for_text = State()
-    wait_for_pic = State()
+    wait_for_message = State()
     wait_for_send = State()
