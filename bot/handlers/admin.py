@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from states import Admin, Menu
 from database.repositories.admin import is_user_admin, get_all_users
-from keyboards import send_kb, menu_kb
+from keyboards import admin_kb, send_kb, menu_kb
 
 router = Router()
 
@@ -21,18 +21,26 @@ async def cancel(message: Message, state: FSMContext):
     await state.set_state(Menu.in_menu)
 
 @router.message(Command('admin'))
-async def on_admin_cmd(message: Message, state: FSMContext):
+async def admin_command(message: Message, state: FSMContext):
     if await is_user_admin(message.from_user.id): # type: ignore
-        keyboard = ReplyKeyboardMarkup(
-            keyboard=[
-                [KeyboardButton(text='Отменить')]
-            ],
-            resize_keyboard=True
-        )
-        await message.answer('Отправьте вашу рассылку:', reply_markup=keyboard)
-        await state.set_state(Admin.wait_for_message)
+        await message.answer('Выберите действие', reply_markup=admin_kb)
     else:
         await message.answer('У вас нет необходимых прав, чтобы воспользоваться данной командой')
+
+@router.message(F.text.lower() == 'просмотреть статистику')
+async def on_stats_btn(message: Message):
+    await message.answer('Статистика вашего бота: test test test')
+
+@router.message(F.text.lower() == 'отправить рассылку')
+async def on_message_btn(message: Message, state: FSMContext):
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text='Отменить')]
+        ],
+        resize_keyboard=True
+    )
+    await message.answer('Введите вашу рассылку:', reply_markup=keyboard)
+    await state.set_state(Admin.wait_for_message)
 
 @router.message(Admin.wait_for_message)
 async def get_message(message: Message, state: FSMContext):

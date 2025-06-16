@@ -94,3 +94,11 @@ def get_tags_keyboard(selected_tags=None):
     ]
     
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+admin_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text='Просмотреть статистику'), KeyboardButton(text='Отправить рассылку')]
+    ],
+    one_time_keyboard=True,
+    resize_keyboard=True
+)
