@@ -27,7 +27,8 @@ category_kb = ReplyKeyboardMarkup(
             [KeyboardButton(text='Вопрос'), KeyboardButton(text='Другое')],
             [KeyboardButton(text='Отменить')]
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
+        one_time_keyboard=True
     )
 
 send_kb = ReplyKeyboardMarkup(
@@ -35,7 +36,8 @@ send_kb = ReplyKeyboardMarkup(
             [KeyboardButton(text='Отправить')],
             [KeyboardButton(text='Отменить')]
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
+        one_time_keyboard=True
     )
 
 def get_tags_keyboard(selected_tags=None):
@@ -95,10 +97,15 @@ def get_tags_keyboard(selected_tags=None):
     
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-admin_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text='Просмотреть статистику'), KeyboardButton(text='Отправить рассылку')]
-    ],
-    one_time_keyboard=True,
-    resize_keyboard=True
+admin_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='Просмотреть статистику', callback_data='view_stats')],
+        [InlineKeyboardButton(text='Отправить рассылку', callback_data='send_message')]
+    ]
+)
+
+back_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text='Назад в меню', callback_data='back_to_admin_menu')]
+    ]
 )

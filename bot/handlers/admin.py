@@ -1,11 +1,12 @@
 from aiogram import Router, F
 from aiogram.filters import Command, or_f
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
-from states import Admin, Menu
-from database.repositories.admin import is_user_admin, get_all_users
-from keyboards import admin_kb, send_kb, menu_kb
+from states import Admin
+from database.repositories.admin import (is_user_admin, get_all_users, get_recently_active_users, 
+                                         get_all_requests, get_recently_added_requests)
+from keyboards import admin_kb, send_kb, back_kb
 
 router = Router()
 
@@ -17,29 +18,48 @@ router = Router()
     F.text.lower() == 'отменить')
 async def cancel(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer('Вы отменили заполнение рассылки')
-    await state.set_state(Menu.in_menu)
+    await message.answer('Вы отменили заполнение рассылки', reply_markup=ReplyKeyboardRemove())
+    await message.answer('Выберите действие', reply_markup=admin_kb)
 
 @router.message(Command('admin'))
-async def admin_command(message: Message, state: FSMContext):
+async def admin_menu(message: Message, state: FSMContext):
     if await is_user_admin(message.from_user.id): # type: ignore
         await message.answer('Выберите действие', reply_markup=admin_kb)
     else:
         await message.answer('У вас нет необходимых прав, чтобы воспользоваться данной командой')
 
-@router.message(F.text.lower() == 'просмотреть статистику')
-async def on_stats_btn(message: Message):
-    await message.answer('Статистика вашего бота: test test test')
+@router.callback_query(F.data == 'back_to_admin_menu')
+async def back_to_admin(callback: CallbackQuery):
+    await callback.message.delete() # type: ignore
+    await callback.message.answer('Выберите действие', reply_markup=admin_kb) # type: ignore
 
-@router.message(F.text.lower() == 'отправить рассылку')
-async def on_message_btn(message: Message, state: FSMContext):
+@router.callback_query(F.data == 'view_stats')
+async def on_stats_btn(callback: CallbackQuery):
+    users = await get_all_users()
+    recently_active_users = await get_recently_active_users()
+    requests = await get_all_requests()
+    recently_added_requests = await get_recently_added_requests()
+    msg_text = (
+        f'📊Статистика вашего бота:\n\n'
+        f'👥Количество пользователей: {len(users)}\n'
+        f'👥Активные пользователи (24 часа): {len(recently_active_users)}\n'
+        f'📝Количество заявок (все время): {len(requests)}\n'
+        f'📝Количество заявок (неделя): {len(recently_added_requests)}'
+    )
+    await callback.message.delete() # type: ignore
+    await callback.message.answer(msg_text, reply_markup=back_kb) # type: ignore
+
+@router.callback_query(F.data == 'send_message')
+async def on_message_btn(callback: CallbackQuery, state: FSMContext):
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text='Отменить')]
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
+        one_time_keyboard=True
     )
-    await message.answer('Введите вашу рассылку:', reply_markup=keyboard)
+    await callback.message.delete() # type: ignore
+    await callback.message.answer('Введите вашу рассылку:', reply_markup=keyboard) # type: ignore
     await state.set_state(Admin.wait_for_message)
 
 @router.message(Admin.wait_for_message)
@@ -73,7 +93,6 @@ async def send_message(message: Message, state: FSMContext):
     # Завершение
     await state.clear()
     await message.answer(
-        f'✅ Рассылка отправлена!\n\nСтолько людей получили рассылку: {len(users)}',
-        reply_markup=menu_kb
+        f'✅ Рассылка отправлена!\n\nСтолько людей получили рассылку: {len(users)}'
     )
-    await state.set_state(Menu.in_menu)
+    await message.answer('Выберите действие', reply_markup=admin_kb)
