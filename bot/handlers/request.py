@@ -169,7 +169,7 @@ async def send_request(message: Message, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="👤 Профиль пользователя",
+                    text="👤Профиль пользователя",
                     url=f"tg://user?id={message.from_user.id}" # type: ignore
                 )
             ]

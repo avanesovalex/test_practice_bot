@@ -102,9 +102,9 @@ async def get_tags_keyboard(selected_tags=None):
 
 admin_kb = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text='Просмотреть статистику', callback_data='view_stats')],
-        [InlineKeyboardButton(text='Отправить рассылку', callback_data='send_message')],
-        [InlineKeyboardButton(text='Список пользователей', callback_data='users_list_0')]
+        [InlineKeyboardButton(text='📊Просмотреть статистику', callback_data='view_stats')],
+        [InlineKeyboardButton(text='📧Отправить рассылку', callback_data='send_message')],
+        [InlineKeyboardButton(text='👥Список пользователей', callback_data='users_page_0')]
     ]
 )
 
@@ -124,7 +124,7 @@ async def get_users_kb(page = 0, users_per_page = 5) -> InlineKeyboardBuilder:
     for user in users[page*users_per_page : (page+1)*users_per_page]:
         user_data = await get_one_user(user)
         builder.button(
-            text=user_data[0], 
+            text=f'👤{user_data[0]}', 
             callback_data=f"user_detail_{user}"
         )
     
@@ -148,14 +148,15 @@ async def get_users_kb(page = 0, users_per_page = 5) -> InlineKeyboardBuilder:
     builder.button(text="В меню", callback_data="back_to_admin_menu")
     
     # Все кнопки пользователей располагаем в столбец
-    builder.adjust(1, *[2] if (page > 0 and page < total_pages - 1) else [1], 1)
+    builder.adjust(1, 1, 1, 1, 1, 2 if (page > 0 and page < total_pages - 1) else 1, 1)
     
     return builder
 
-async def back_to_users_list_kb() -> InlineKeyboardBuilder:
-    builder = InlineKeyboardBuilder()
-    builder.button(
-        text="🔙 Назад к списку", 
-        callback_data="users_list_0"  # Возврат на первую страницу
+async def get_user_kb(user_id):
+    user_kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text='👤Профиль пользователя', url=f"tg://user?id={user_id}")],
+            [InlineKeyboardButton(text='🔙Назад к списку', callback_data="users_page_0")]
+        ]
     )
-    return builder
+    return user_kb
