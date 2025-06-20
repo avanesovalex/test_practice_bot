@@ -1,5 +1,8 @@
 from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton,
                            ReplyKeyboardMarkup, KeyboardButton)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+from database.repositories.admin import get_all_users, get_one_user
 
 get_phone_kb = ReplyKeyboardMarkup(
         keyboard=[
@@ -40,7 +43,7 @@ send_kb = ReplyKeyboardMarkup(
         one_time_keyboard=True
     )
 
-def get_tags_keyboard(selected_tags=None):
+async def get_tags_keyboard(selected_tags=None):
     """Создаёт клавиатуру с выбором тегов."""
     if selected_tags is None:
         selected_tags = []
@@ -100,7 +103,8 @@ def get_tags_keyboard(selected_tags=None):
 admin_kb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text='Просмотреть статистику', callback_data='view_stats')],
-        [InlineKeyboardButton(text='Отправить рассылку', callback_data='send_message')]
+        [InlineKeyboardButton(text='Отправить рассылку', callback_data='send_message')],
+        [InlineKeyboardButton(text='Список пользователей', callback_data='users_list_0')]
     ]
 )
 
@@ -109,3 +113,49 @@ back_kb = InlineKeyboardMarkup(
         [InlineKeyboardButton(text='Назад в меню', callback_data='back_to_admin_menu')]
     ]
 )
+
+async def get_users_kb(page = 0, users_per_page = 5) -> InlineKeyboardBuilder:
+    users = await get_all_users()
+    total_pages = (len(users) + users_per_page - 1) // users_per_page
+    
+    builder = InlineKeyboardBuilder()
+    
+    # Добавляем кнопки пользователей
+    for user in users[page*users_per_page : (page+1)*users_per_page]:
+        user_data = await get_one_user(user)
+        builder.button(
+            text=user_data[0], 
+            callback_data=f"user_detail_{user}"
+        )
+    
+    # Добавляем кнопки пагинации
+    pagination_buttons = []
+    if page > 0:
+        pagination_buttons.append(
+            ("⬅️", f"users_page_{page-1}")
+        )
+    if page < total_pages - 1:
+        pagination_buttons.append(
+            ("➡️", f"users_page_{page+1}")
+        )
+    
+    if pagination_buttons:
+        for text, callback_data in pagination_buttons:
+            builder.button(text=text, callback_data=callback_data)
+        builder.adjust(len(pagination_buttons))  # Размещаем кнопки пагинации в один ряд
+    
+    # Добавляем кнопку "В меню"
+    builder.button(text="В меню", callback_data="back_to_admin_menu")
+    
+    # Все кнопки пользователей располагаем в столбец
+    builder.adjust(1, *[2] if (page > 0 and page < total_pages - 1) else [1], 1)
+    
+    return builder
+
+async def back_to_users_list_kb() -> InlineKeyboardBuilder:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="🔙 Назад к списку", 
+        callback_data="users_list_0"  # Возврат на первую страницу
+    )
+    return builder

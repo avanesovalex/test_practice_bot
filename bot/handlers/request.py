@@ -67,7 +67,7 @@ async def get_pic(message: Message, state: FSMContext):
     await state.update_data(photo_id=message.photo[-1].file_id) # type: ignore
 
     await message.answer('Ваш скриншот успешно прикреплен\nВыберите теги к вашей заявке',
-                         reply_markup=get_tags_keyboard())
+                         reply_markup=await get_tags_keyboard())
     await state.set_state(Request.wait_for_tags)
 
 @router.message(Request.wait_for_pic, F.text.lower() == 'продолжить без скриншота')
@@ -75,7 +75,7 @@ async def no_pic(message: Message, state: FSMContext):
     global attached_photo
     attached_photo = False
     await message.answer('Вы решили продолжить без скриншота\nВыберите теги к вашей заявке',
-                         reply_markup=get_tags_keyboard())
+                         reply_markup=await get_tags_keyboard())
     await state.set_state(Request.wait_for_tags)
 
 @router.callback_query(Request.wait_for_tags, F.data.startswith("tag_"))
@@ -92,7 +92,7 @@ async def handle_tag_selection(callback: CallbackQuery, state: FSMContext):
     await state.update_data(tags=current_tags)
     
     await callback.message.edit_reply_markup(  # type: ignore
-        reply_markup=get_tags_keyboard(current_tags)
+        reply_markup=await get_tags_keyboard(current_tags)
     )
     await callback.answer()
 

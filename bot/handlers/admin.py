@@ -4,9 +4,9 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardB
 from aiogram.fsm.context import FSMContext
 
 from states import Admin
-from database.repositories.admin import (is_user_admin, get_all_users, get_recently_active_users, 
+from database.repositories.admin import (is_user_admin, get_all_users, get_one_user, get_recently_active_users, 
                                          get_all_requests, get_recently_added_requests)
-from keyboards import admin_kb, send_kb, back_kb
+from keyboards import admin_kb, send_kb, back_kb, get_users_kb, back_to_users_list_kb
 
 router = Router()
 
@@ -96,3 +96,31 @@ async def send_message(message: Message, state: FSMContext):
         f'✅ Рассылка отправлена!\n\nСтолько людей получили рассылку: {len(users)}'
     )
     await message.answer('Выберите действие', reply_markup=admin_kb)
+
+@router.callback_query(F.data.startswith('users_list_'))
+async def get_users_list(callback: CallbackQuery):
+    page = int(callback.data.split('_')[-1]) # type: ignore
+    builder = await get_users_kb(page=page)
+    await callback.message.edit_text( # type: ignore
+        "Список пользователей:", 
+        reply_markup=builder.as_markup()
+    )
+
+@router.callback_query(F.data.startswith('user_detail_'))
+async def get_user_detail(callback: CallbackQuery):
+    user_id = int(callback.data.split('_')[-1]) # type: ignore
+    user = await get_one_user(user_id)
+    
+    if user:
+        user_info = (f"👤 Имя: {user[0]}\n"
+                    f"🎂 Дата рождения: {user[1]}\n"
+                    f"📞 Телефон: {user[2]}\n"
+                    f"⏱ Последняя активность: {user[3]}")
+        
+        builder = await back_to_users_list_kb()
+        await callback.message.edit_text( # type: ignore
+            user_info, 
+            reply_markup=builder.as_markup()
+        )
+    else:
+        await callback.answer("Пользователь не найден")
