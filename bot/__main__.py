@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from handlers import menu, registration, request, admin
 from config import TOKEN
 from database.db import db
-from middleware import LastActivityMiddleware
+from files.middleware import LastActivityMiddleware
 
 
 bot = Bot(token=TOKEN)
