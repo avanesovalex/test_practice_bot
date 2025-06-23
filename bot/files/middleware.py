@@ -2,7 +2,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 from typing import Callable, Dict, Any, Awaitable
 
-from database.repositories.user import update_last_activity
+from bot.database.repositories.user import update_last_activity
 
 
 class LastActivityMiddleware(BaseMiddleware):

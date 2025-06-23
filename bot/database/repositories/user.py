@@ -1,4 +1,4 @@
-from database.db import db
+from bot.database.db import db
 
 
 async def add_user(user_id, full_name, birth_date, phone_number):

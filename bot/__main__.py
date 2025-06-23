@@ -1,12 +1,11 @@
 import asyncio
-import asyncpg
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from handlers import menu, registration, request, admin
-from config import TOKEN
-from database.db import db
-from files.middleware import LastActivityMiddleware
+from bot.handlers import menu, registration, request, admin
+from bot.config import TOKEN
+from bot.database.db import db
+from bot.files.middleware import LastActivityMiddleware
 
 
 bot = Bot(token=TOKEN)

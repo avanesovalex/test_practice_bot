@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.types import (Message, InlineKeyboardMarkup, InlineKeyboardButton)
 
-from files.states import Menu
+from bot.files.states import Menu
 
 
 router = Router()

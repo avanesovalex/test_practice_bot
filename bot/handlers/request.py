@@ -5,10 +5,10 @@ from aiogram.types import (Message, CallbackQuery,
                            InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 
-from files.states import Menu, Request
-from files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
-from config import ADMIN_CHAT_ID
-from database.repositories.requests import (add_request, add_request_tag, 
+from bot.files.states import Menu, Request
+from bot.files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
+from bot.config import ADMIN_CHAT_ID
+from bot.database.repositories.requests import (add_request, add_request_tag, 
                                             get_request, get_request_tags)
 
 

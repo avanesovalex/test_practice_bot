@@ -4,10 +4,10 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardB
 from aiogram.fsm.context import FSMContext
 from datetime import datetime
 
-from files.states import Admin
-from database.repositories.admin import (is_user_admin, get_all_users, get_one_user, get_recently_active_users, 
+from bot.files.states import Admin
+from bot.database.repositories.admin import (is_user_admin, get_all_users, get_one_user, get_recently_active_users, 
                                          get_all_requests, get_recently_added_requests)
-from files.keyboards import admin_kb, send_kb, back_kb, get_users_kb, get_user_kb
+from bot.files.keyboards import admin_kb, send_kb, back_kb, get_users_kb, get_user_kb
 
 
 router = Router()

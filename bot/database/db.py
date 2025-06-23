@@ -1,5 +1,7 @@
 import asyncpg
-from config import DB_DSN
+
+from bot.config import DB_DSN
+
 
 class Database:
     def __init__(self):
