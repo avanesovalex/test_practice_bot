@@ -56,48 +56,25 @@ async def get_tags_keyboard(selected_tags=None):
         "Баг в интерфейсе",
         "Другая проблема"
     ]
+
+    buttons = []
+
+    for i in range(0, len(tags), 3):
+        row = []
+        for tag in tags[i:i+3]:
+            row.append(
+                InlineKeyboardButton(
+                    text=f'✅{tag}' if tag in selected_tags else tag,
+                    callback_data=f'tag_{tag}'
+                )
+            )
+        buttons.append(row)
     
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text=f"✅{tags[0]}" if tags[0] in selected_tags else tags[0],
-                callback_data=f"tag_{tags[0]}"
-            ),
-            InlineKeyboardButton(
-                text=f"✅{tags[1]}" if tags[1] in selected_tags else tags[1],
-                callback_data=f"tag_{tags[1]}"
-            ),
-            InlineKeyboardButton(
-                text=f"✅{tags[2]}" if tags[2] in selected_tags else tags[2],
-                callback_data=f"tag_{tags[2]}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text=f"✅{tags[3]}" if tags[3] in selected_tags else tags[3],
-                callback_data=f"tag_{tags[3]}"
-            ),
-            InlineKeyboardButton(
-                text=f"✅{tags[4]}" if tags[4] in selected_tags else tags[4],
-                callback_data=f"tag_{tags[4]}"
-            ),
-            InlineKeyboardButton(
-                text=f"✅{tags[5]}" if tags[5] in selected_tags else tags[5],
-                callback_data=f"tag_{tags[5]}"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="➡️Продолжить",
-                callback_data="continue_tags"
-            ),
-            InlineKeyboardButton(
-                text="❌Отменить",
-                callback_data="cancel_tags"
-            )
-        ]
-    ]
-    
+    buttons.append([
+        InlineKeyboardButton(text="➡️Продолжить", callback_data="continue_tags"),
+        InlineKeyboardButton(text="❌Отменить", callback_data="cancel_tags")
+    ])
+
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 admin_kb = InlineKeyboardMarkup(
