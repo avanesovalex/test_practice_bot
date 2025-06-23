@@ -1,11 +1,7 @@
 from database.db import db
 
+
 async def add_request(user_id, request_text, tags=None, photo_id=None):
-    """Добавляет новую заявку с тегами"""
-    if tags is None:
-        tags = None
-    
-    # Добавляем основную заявку
     request_id = await db.fetchval(
         '''INSERT INTO requests(user_id, request_text, photo_id) 
         VALUES($1, $2, $3)
@@ -14,7 +10,8 @@ async def add_request(user_id, request_text, tags=None, photo_id=None):
     )
 
     return request_id
-    
+
+ 
 async def add_request_tag(request_id, tag):
     await db.execute(
         '''INSERT INTO request_tags(request_id, tag) 

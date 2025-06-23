@@ -4,6 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from database.repositories.admin import get_all_users, get_one_user
 
+
 get_phone_kb = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text='Отправить номер телефона📞', request_contact=True)]
@@ -44,7 +45,6 @@ send_kb = ReplyKeyboardMarkup(
     )
 
 async def get_tags_keyboard(selected_tags=None):
-    """Создаёт клавиатуру с выбором тегов."""
     if selected_tags is None:
         selected_tags = []
     

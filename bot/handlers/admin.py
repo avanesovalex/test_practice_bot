@@ -4,12 +4,14 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, KeyboardB
 from aiogram.fsm.context import FSMContext
 from datetime import datetime
 
-from states import Admin
+from files.states import Admin
 from database.repositories.admin import (is_user_admin, get_all_users, get_one_user, get_recently_active_users, 
                                          get_all_requests, get_recently_added_requests)
-from keyboards import admin_kb, send_kb, back_kb, get_users_kb, get_user_kb
+from files.keyboards import admin_kb, send_kb, back_kb, get_users_kb, get_user_kb
+
 
 router = Router()
+
 
 @router.message(
     or_f(
@@ -22,6 +24,7 @@ async def cancel(message: Message, state: FSMContext):
     await message.answer('Вы отменили заполнение рассылки', reply_markup=ReplyKeyboardRemove())
     await message.answer('Выберите действие', reply_markup=admin_kb)
 
+
 @router.message(Command('admin'))
 async def admin_menu(message: Message, state: FSMContext):
     if await is_user_admin(message.from_user.id): # type: ignore
@@ -29,10 +32,12 @@ async def admin_menu(message: Message, state: FSMContext):
     else:
         await message.answer('У вас нет необходимых прав, чтобы воспользоваться данной командой')
 
+
 @router.callback_query(F.data == 'back_to_admin_menu')
 async def back_to_admin(callback: CallbackQuery):
     await callback.message.delete() # type: ignore
     await callback.message.answer('Выберите действие', reply_markup=admin_kb) # type: ignore
+
 
 @router.callback_query(F.data == 'view_stats')
 async def on_stats_btn(callback: CallbackQuery):
@@ -50,6 +55,7 @@ async def on_stats_btn(callback: CallbackQuery):
     await callback.message.delete() # type: ignore
     await callback.message.answer(msg_text, reply_markup=back_kb) # type: ignore
 
+
 @router.callback_query(F.data == 'send_message')
 async def on_message_btn(callback: CallbackQuery, state: FSMContext):
     keyboard = ReplyKeyboardMarkup(
@@ -62,6 +68,7 @@ async def on_message_btn(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete() # type: ignore
     await callback.message.answer('Введите вашу рассылку:', reply_markup=keyboard) # type: ignore
     await state.set_state(Admin.wait_for_message)
+
 
 @router.message(Admin.wait_for_message)
 async def get_message(message: Message, state: FSMContext):
@@ -81,6 +88,7 @@ async def get_message(message: Message, state: FSMContext):
 
     await state.set_state(Admin.wait_for_send)
 
+
 @router.message(Admin.wait_for_send, F.text.lower() == 'отправить')
 async def send_message(message: Message, state: FSMContext):
     users = await get_all_users()
@@ -98,6 +106,7 @@ async def send_message(message: Message, state: FSMContext):
     )
     await message.answer('Выберите действие', reply_markup=admin_kb)
 
+
 @router.callback_query(F.data.startswith('users_page_'))
 async def get_users_list(callback: CallbackQuery):
     page = int(callback.data.split('_')[-1]) # type: ignore
@@ -106,6 +115,7 @@ async def get_users_list(callback: CallbackQuery):
         "Список пользователей:", 
         reply_markup=builder.as_markup()
     )
+
 
 @router.callback_query(F.data.startswith('user_detail_'))
 async def get_user_detail(callback: CallbackQuery):

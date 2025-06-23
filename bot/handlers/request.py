@@ -5,13 +5,15 @@ from aiogram.types import (Message, CallbackQuery,
                            InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 
-from states import Menu, Request
-from keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
+from files.states import Menu, Request
+from files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
 from config import ADMIN_CHAT_ID
 from database.repositories.requests import (add_request, add_request_tag, 
                                             get_request, get_request_tags)
 
+
 router = Router()
+
 
 @router.message(
     or_f(
@@ -27,10 +29,12 @@ async def cancel(message: Message, state: FSMContext):
     await message.answer('Вы отменили заполнение заявки', reply_markup=menu_kb)
     await state.set_state(Menu.in_menu)
 
+
 @router.message(Menu.in_menu, F.text.lower() =='оставить заявку🗒')
 async def new_request(message: Message, state: FSMContext):
     await message.answer('Выберите категорию заявки', reply_markup=category_kb)
     await state.set_state(Request.wait_for_category)
+
 
 @router.message(Request.wait_for_category)
 async def get_category(message: Message, state: FSMContext):
@@ -44,6 +48,7 @@ async def get_category(message: Message, state: FSMContext):
 
     await message.answer('Введите текст заявки', reply_markup=keyboard)
     await state.set_state(Request.wait_for_text)
+
 
 @router.message(Request.wait_for_text)
 async def get_text(message: Message, state: FSMContext):
@@ -60,6 +65,7 @@ async def get_text(message: Message, state: FSMContext):
     await message.answer('Прикрепите скриншот', reply_markup=keyboard)
     await state.set_state(Request.wait_for_pic)
 
+
 @router.message(Request.wait_for_pic, F.photo)
 async def get_pic(message: Message, state: FSMContext):
     global attached_photo
@@ -70,6 +76,7 @@ async def get_pic(message: Message, state: FSMContext):
                          reply_markup=await get_tags_keyboard())
     await state.set_state(Request.wait_for_tags)
 
+
 @router.message(Request.wait_for_pic, F.text.lower() == 'продолжить без скриншота')
 async def no_pic(message: Message, state: FSMContext):
     global attached_photo
@@ -77,6 +84,7 @@ async def no_pic(message: Message, state: FSMContext):
     await message.answer('Вы решили продолжить без скриншота\nВыберите теги к вашей заявке',
                          reply_markup=await get_tags_keyboard())
     await state.set_state(Request.wait_for_tags)
+
 
 @router.callback_query(Request.wait_for_tags, F.data.startswith("tag_"))
 async def handle_tag_selection(callback: CallbackQuery, state: FSMContext):
@@ -96,12 +104,14 @@ async def handle_tag_selection(callback: CallbackQuery, state: FSMContext):
     )
     await callback.answer()
 
+
 @router.callback_query(Request.wait_for_tags, F.data == "cancel_tags")
 async def handle_tags_cancel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.delete() # type: ignore
     await callback.message.answer('Вы отменили заполнение заявки', reply_markup=menu_kb) # type: ignore
     await state.set_state(Menu.in_menu)
+
 
 @router.callback_query(Request.wait_for_tags, F.data == "continue_tags")
 async def handle_continue(callback: CallbackQuery, state: FSMContext):
@@ -130,6 +140,7 @@ async def handle_continue(callback: CallbackQuery, state: FSMContext):
     
     await state.set_state(Request.wait_for_send)
     await callback.answer()
+
 
 @router.message(Request.wait_for_send, F.text.lower() == 'отправить')
 async def send_request(message: Message, state: FSMContext):

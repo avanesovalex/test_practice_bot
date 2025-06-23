@@ -1,9 +1,11 @@
 from aiogram import Router, F
 from aiogram.types import (Message, InlineKeyboardMarkup, InlineKeyboardButton)
 
-from states import Menu
+from files.states import Menu
+
 
 router = Router()
+
 
 @router.message(Menu.in_menu, F.text.lower() =='контакты📱')
 async def get_contacts(message: Message):
@@ -21,6 +23,7 @@ async def get_contacts(message: Message):
     )
 
     await message.answer(text=contact_text, reply_markup=keyboard)
+
 
 @router.message(Menu.in_menu, F.text.lower() =='информация о компанииℹ')
 async def get_info(message: Message):

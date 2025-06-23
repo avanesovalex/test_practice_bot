@@ -4,6 +4,7 @@ from typing import Callable, Dict, Any, Awaitable
 
 from database.repositories.user import update_last_activity
 
+
 class LastActivityMiddleware(BaseMiddleware):
     async def __call__( # type: ignore
             self,
