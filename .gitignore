@@ -1,5 +1,2 @@
 bot/config.py
-bot/__pycache__/
-bot/database/__pycache__/
-bot/database/repositories/__pycache__/
-bot/handlers/__pycache__/
+**/__pycache__/
