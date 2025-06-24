@@ -1,12 +1,12 @@
 import asyncpg
 
-from bot.config import DB_DSN
+from src.config import config
 
 
 class Database:
     def __init__(self):
         self.pool = None
-        self.dsn = DB_DSN
+        self.dsn = config.DB_DSN
 
     async def connect(self):
         try:

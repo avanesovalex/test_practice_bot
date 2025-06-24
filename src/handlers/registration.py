@@ -6,9 +6,9 @@ from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 
-from bot.files.states import Registration, Menu
-from bot.files.keyboards import get_phone_kb, menu_kb
-from bot.database.repositories.user import add_user
+from src.files.states import Registration, Menu
+from src.files.keyboards import get_phone_kb, menu_kb
+from src.database.repositories.user import add_user
 
 
 router = Router()

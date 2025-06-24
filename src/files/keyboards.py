@@ -2,7 +2,7 @@ from aiogram.types import (InlineKeyboardMarkup, InlineKeyboardButton,
                            ReplyKeyboardMarkup, KeyboardButton)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.database.repositories.admin import get_all_users, get_one_user
+from src.database.repositories.admin import get_all_users, get_one_user
 
 
 get_phone_kb = ReplyKeyboardMarkup(

@@ -1,4 +1,4 @@
-from bot.database.db import db
+from src.database.db import db
 
 
 async def is_user_admin(user_id):

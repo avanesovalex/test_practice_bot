@@ -1,4 +1,4 @@
-from bot.database.db import db
+from src.database.db import db
 
 
 async def add_request(user_id, request_text, tags=None, photo_id=None):

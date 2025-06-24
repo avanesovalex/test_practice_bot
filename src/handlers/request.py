@@ -5,10 +5,10 @@ from aiogram.types import (Message, CallbackQuery,
                            InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 
-from bot.files.states import Menu, Request
-from bot.files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
-from bot.config import ADMIN_CHAT_ID
-from bot.database.repositories.requests import (add_request, add_request_tag, 
+from src.files.states import Menu, Request
+from src.files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
+from src.config import config
+from src.database.repositories.requests import (add_request, add_request_tag, 
                                             get_request, get_request_tags)
 
 
@@ -188,9 +188,9 @@ async def send_request(message: Message, state: FSMContext):
     
     # Отправка админу
     if request.get('photo_id'): # type: ignore
-        await message.bot.send_photo(ADMIN_CHAT_ID, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
+        await message.bot.send_photo(config.ADMIN_CHAT_ID, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
     else:
-        await message.bot.send_message(ADMIN_CHAT_ID, request_msg, reply_markup=keyboard)  # type: ignore
+        await message.bot.send_message(config.ADMIN_CHAT_ID, request_msg, reply_markup=keyboard)  # type: ignore
     
     # Завершение
     await state.clear()
