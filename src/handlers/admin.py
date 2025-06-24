@@ -8,6 +8,7 @@ from src.files.states import Admin
 from src.database.repositories.admin import (is_user_admin, get_all_users, get_one_user, get_recently_active_users, 
                                          get_all_requests, get_recently_added_requests)
 from src.files.keyboards import admin_kb, send_kb, back_kb, get_users_kb, get_user_kb
+from src.files.filters import AdminFilter
 
 
 router = Router()
@@ -25,12 +26,9 @@ async def cancel(message: Message, state: FSMContext):
     await message.answer('Выберите действие', reply_markup=admin_kb)
 
 
-@router.message(Command('admin'))
-async def admin_menu(message: Message, state: FSMContext):
-    if await is_user_admin(message.from_user.id): # type: ignore
-        await message.answer('Выберите действие', reply_markup=admin_kb)
-    else:
-        await message.answer('У вас нет необходимых прав, чтобы воспользоваться данной командой')
+@router.message(Command('admin'), AdminFilter())
+async def admin_menu(message: Message):
+    await message.answer('Выберите действие', reply_markup=admin_kb)
 
 
 @router.callback_query(F.data == 'back_to_admin_menu')
