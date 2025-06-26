@@ -11,7 +11,7 @@ async def add_request(user_id, request_text, tags=None, photo_id=None):
 
     return request_id
 
- 
+
 async def add_request_tag(request_id, tag):
     await db.execute(
         '''INSERT INTO request_tags(request_id, tag) 
@@ -19,6 +19,7 @@ async def add_request_tag(request_id, tag):
         ON CONFLICT (request_id, tag) DO NOTHING''',
         request_id, tag
     )
+
 
 async def get_request(request_id):
     # Получаем основную информацию о заявке
@@ -31,7 +32,8 @@ async def get_request(request_id):
         request_id
     )
     return request
-    
+
+
 async def get_request_tags(request_id) -> list:
     """Получает все теги для конкретной заявки"""
     tags = await db.fetch(

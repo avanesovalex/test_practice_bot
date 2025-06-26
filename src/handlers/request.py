@@ -8,8 +8,8 @@ from aiogram.fsm.context import FSMContext
 from src.files.states import Menu, Request
 from src.files.keyboards import menu_kb, category_kb, send_kb, get_tags_keyboard
 from src.config import config
-from src.database.repositories.requests import (add_request, add_request_tag, 
-                                            get_request, get_request_tags)
+from src.database.repositories.requests import (add_request, add_request_tag,
+                                                get_request, get_request_tags)
 
 
 router = Router()
@@ -30,7 +30,7 @@ async def cancel(message: Message, state: FSMContext):
     await state.set_state(Menu.in_menu)
 
 
-@router.message(Menu.in_menu, F.text.lower() =='оставить заявку🗒')
+@router.message(Menu.in_menu, F.text.lower() == 'оставить заявку🗒')
 async def new_request(message: Message, state: FSMContext):
     await message.answer('Выберите категорию заявки', reply_markup=category_kb)
     await state.set_state(Request.wait_for_category)
@@ -61,7 +61,7 @@ async def get_text(message: Message, state: FSMContext):
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    
+
     await message.answer('Прикрепите скриншот', reply_markup=keyboard)
     await state.set_state(Request.wait_for_pic)
 
@@ -70,7 +70,7 @@ async def get_text(message: Message, state: FSMContext):
 async def get_pic(message: Message, state: FSMContext):
     global attached_photo
     attached_photo = True
-    await state.update_data(photo_id=message.photo[-1].file_id) # type: ignore
+    await state.update_data(photo_id=message.photo[-1].file_id)
 
     await message.answer('Ваш скриншот успешно прикреплен\nВыберите теги к вашей заявке',
                          reply_markup=await get_tags_keyboard())
@@ -88,18 +88,18 @@ async def no_pic(message: Message, state: FSMContext):
 
 @router.callback_query(Request.wait_for_tags, F.data.startswith("tag_"))
 async def handle_tag_selection(callback: CallbackQuery, state: FSMContext):
-    selected_tag = callback.data.split("_")[1]  # type: ignore
+    selected_tag = callback.data.split("_")[1]
     user_data = await state.get_data()
-    
+
     current_tags = user_data.get("tags", [])
     if selected_tag in current_tags:
         current_tags.remove(selected_tag)
     else:
         current_tags.append(selected_tag)
-    
+
     await state.update_data(tags=current_tags)
-    
-    await callback.message.edit_reply_markup(  # type: ignore
+
+    await callback.message.edit_reply_markup(
         reply_markup=await get_tags_keyboard(current_tags)
     )
     await callback.answer()
@@ -108,36 +108,37 @@ async def handle_tag_selection(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(Request.wait_for_tags, F.data == "cancel_tags")
 async def handle_tags_cancel(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback.message.delete() # type: ignore
-    await callback.message.answer('Вы отменили заполнение заявки', reply_markup=menu_kb) # type: ignore
+    await callback.message.delete()
+
+    await callback.message.answer('Вы отменили заполнение заявки', reply_markup=menu_kb)
     await state.set_state(Menu.in_menu)
 
 
 @router.callback_query(Request.wait_for_tags, F.data == "continue_tags")
 async def handle_continue(callback: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
-    
+
     # Удаляем клавиатуру
-    await callback.message.delete()  # type: ignore
-    
+    await callback.message.delete()
+
     # Формируем сообщение с данными заявки
     req_msg = (
         f"Теги: {', '.join(user_data.get('tags', [])) or 'Не выбраны'}\n"
         f"Текст заявки:\n{user_data.get('text', '')}"
     )
-    
+
     if user_data.get('photo_id'):
-        await callback.message.answer_photo( # type: ignore
+        await callback.message.answer_photo(
             user_data['photo_id'],
             caption=req_msg,
             reply_markup=send_kb
         )
     else:
-        await callback.message.answer( # type: ignore
+        await callback.message.answer(
             req_msg,
             reply_markup=send_kb
         )
-    
+
     await state.set_state(Request.wait_for_send)
     await callback.answer()
 
@@ -146,52 +147,54 @@ async def handle_continue(callback: CallbackQuery, state: FSMContext):
 async def send_request(message: Message, state: FSMContext):
     user_data = await state.get_data()
     global attached_photo
-    
+
     # Создаем базовую заявку
     if attached_photo:
         request_id = await add_request(
-            user_id=message.from_user.id,  # type: ignore
+            user_id=message.from_user.id,
             request_text=user_data['text'],
             photo_id=user_data['photo_id']
         )
     else:
         request_id = await add_request(
-            user_id=message.from_user.id,  # type: ignore
+            user_id=message.from_user.id,
             request_text=user_data['text']
         )
-    
+
     # Добавляем теги по одному
     for tag in user_data.get('tags', []):
         await add_request_tag(request_id, tag)
-    
+
     # Получаем данные для уведомления
     request = await get_request(request_id)
     tags = await get_request_tags(request_id)
-    
+
     # Формируем сообщение
     request_msg = (
-        f"📌 Номер заявки: {request['id']}\n" # type: ignore
-        f"👤 Пользователь: {request['full_name']}\n" # type: ignore
-        f"📞 Телефон: {request['phone_number']}\n" # type: ignore
+        f"📌 Номер заявки: {request['id']}\n"
+        f"👤 Пользователь: {request['full_name']}\n"
+        f"📞 Телефон: {request['phone_number']}\n"
         f"🏷 Теги: {', '.join(tags) if tags else 'нет'}\n"
-        f"📝 Текст:\n{request['request_text']}" # type: ignore
+        f"📝 Текст:\n{request['request_text']}"
     )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="👤Профиль пользователя",
-                    url=f"tg://user?id={message.from_user.id}" # type: ignore
-                )
-            ]
-        ])
-    
+        [
+            InlineKeyboardButton(
+                text="👤Профиль пользователя",
+                url=f"tg://user?id={message.from_user.id}"
+            )
+        ]
+    ])
+
     # Отправка админу
-    if request.get('photo_id'): # type: ignore
-        await message.bot.send_photo(config.ADMIN_CHAT_ID, request['photo_id'], caption=request_msg, reply_markup=keyboard)  # type: ignore
+    if request.get('photo_id'):
+
+        await message.bot.send_photo(config.ADMIN_CHAT_ID, request['photo_id'], caption=request_msg, reply_markup=keyboard)
     else:
-        await message.bot.send_message(config.ADMIN_CHAT_ID, request_msg, reply_markup=keyboard)  # type: ignore
-    
+
+        await message.bot.send_message(config.ADMIN_CHAT_ID, request_msg, reply_markup=keyboard)
+
     # Завершение
     await state.clear()
     await message.answer(

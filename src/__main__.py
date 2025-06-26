@@ -11,7 +11,6 @@ from src.files.middleware import LastActivityMiddleware
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-
 dp.message.middleware(LastActivityMiddleware())
 dp.callback_query.middleware(LastActivityMiddleware())
 
@@ -23,7 +22,7 @@ dp.include_router(request.router)
 
 @dp.startup()
 async def on_startup():
-  await db.connect()
+    await db.connect()
 
 
 @dp.shutdown()

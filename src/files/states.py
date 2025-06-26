@@ -9,7 +9,7 @@ class Registration(StatesGroup):
 
 class Menu(StatesGroup):
     in_menu = State()
-    
+
 
 class Request(StatesGroup):
     wait_for_category = State()

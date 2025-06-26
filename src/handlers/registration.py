@@ -31,14 +31,14 @@ async def get_name(message: Message, state: FSMContext):
 async def get_birthdate(message: Message, state: FSMContext):
     date_pattern = r'^\d{2}\.\d{2}\.\d{4}$'
 
-    if not re.match(date_pattern, message.text): # type: ignore
+    if not re.match(date_pattern, message.text):
         await message.answer('Неверный формат даты. Пожалуйста, введите дату в формате ДД.ММ.ГГГГ:')
         return
-    
+
     try:
-        day, month, year = map(int, message.text.split('.')) # type: ignore
+        day, month, year = map(int, message.text.split('.'))
         birthdate = datetime.datetime(year, month, day)
-        
+
         if birthdate > datetime.datetime.now():
             await message.answer('Дата рождения не может быть в будущем. Пожалуйста, введите корректную дату:')
             return
@@ -48,7 +48,7 @@ async def get_birthdate(message: Message, state: FSMContext):
     except ValueError as e:
         await message.answer(f'Некорректная дата: {e}. Введите корректную дату:')
         return
-    
+
     await state.update_data(birthdate=message.text)
 
     await message.answer('Последний шаг! Отправьте ваш номер телефона (в формате +7**********, либо нажав кнопку ниже):', reply_markup=get_phone_kb)
@@ -57,12 +57,11 @@ async def get_birthdate(message: Message, state: FSMContext):
 
 @router.message(Registration.wait_for_phone, F.text.startswith('+7'))
 async def wrong_phone(message: Message, state: FSMContext):
-    if len(message.text) == 12: # type: ignore
+    if len(message.text) == 12:
         phone_number = message.text
         user_data = await state.get_data()
-        await add_user(message.from_user.id, user_data['name'], # type: ignore
-                    user_data['birthdate'], phone_number)
-
+        await add_user(message.from_user.id, user_data['name'],
+                       user_data['birthdate'], phone_number)
 
         await message.answer(f'Регистрация успешно завершена!\n\nФИО: {user_data['name']}\nДата рождения: {user_data['birthdate']}\nНомер телефона: {phone_number}', reply_markup=menu_kb)
         await state.set_state(Menu.in_menu)
@@ -72,9 +71,9 @@ async def wrong_phone(message: Message, state: FSMContext):
 
 @router.message(Registration.wait_for_phone, F.contact)
 async def get_phone(message: Message, state: FSMContext):
-    phone_number = message.contact.phone_number # type: ignore
+    phone_number = message.contact.phone_number
     user_data = await state.get_data()
-    await add_user(message.from_user.id, user_data['name'], # type: ignore
+    await add_user(message.from_user.id, user_data['name'],
                    user_data['birthdate'], phone_number)
 
     await message.answer(f'Регистрация успешно завершена!\n\nФИО: {user_data['name']}\nДата рождения: {user_data['birthdate']}\nНомер телефона: {phone_number}', reply_markup=menu_kb)

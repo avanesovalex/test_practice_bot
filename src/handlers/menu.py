@@ -7,7 +7,7 @@ from src.files.states import Menu
 router = Router()
 
 
-@router.message(Menu.in_menu, F.text.lower() =='контакты📱')
+@router.message(Menu.in_menu, F.text.lower() == 'контакты📱')
 async def get_contacts(message: Message):
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -25,7 +25,7 @@ async def get_contacts(message: Message):
     await message.answer(text=contact_text, reply_markup=keyboard)
 
 
-@router.message(Menu.in_menu, F.text.lower() =='информация о компанииℹ')
+@router.message(Menu.in_menu, F.text.lower() == 'информация о компанииℹ')
 async def get_info(message: Message):
     info_text = (
         'Мы - КОМПАНИЯ, диамично развивающаяся компания, которая создает будущее уже сегодня! 🚀\n\n'

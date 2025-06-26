@@ -6,13 +6,13 @@ from src.database.repositories.user import update_last_activity
 
 
 class LastActivityMiddleware(BaseMiddleware):
-    async def __call__( # type: ignore
+    async def __call__(
             self,
             handler: Callable[[Message | CallbackQuery, Dict[str, Any]], Awaitable[Any]],
             event: Message | CallbackQuery,
             data: Dict[str, Any],
     ) -> Any:
-        user_id = event.from_user.id # type: ignore
+        user_id = event.from_user.id
 
         await update_last_activity(user_id)
 
