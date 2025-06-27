@@ -101,7 +101,8 @@ back_kb = InlineKeyboardMarkup(
 
 async def get_users_kb(page=0, users_per_page=5) -> InlineKeyboardBuilder:
     users = await get_all_users()
-    total_pages = (len(users) + users_per_page - 1) // users_per_page
+    total_pages = max(1, (len(users) + users_per_page - 1) //
+                      users_per_page)  # Не меньше 1 страницы
 
     builder = InlineKeyboardBuilder()
 
@@ -113,29 +114,31 @@ async def get_users_kb(page=0, users_per_page=5) -> InlineKeyboardBuilder:
             callback_data=f"user_detail_{user}"
         )
 
+    builder.adjust(1)
+
     # Добавляем кнопки пагинации
     pagination_buttons = []
-    if page > 0:
-        pagination_buttons.append(
-            ("⬅️", f"users_page_{page-1}")
-        )
-    if page < total_pages - 1:
-        pagination_buttons.append(
-            ("➡️", f"users_page_{page+1}")
-        )
 
-    if pagination_buttons:
-        for text, callback_data in pagination_buttons:
-            builder.button(text=text, callback_data=callback_data)
-        # Размещаем кнопки пагинации в один ряд
-        builder.adjust(len(pagination_buttons))
+    # Всегда добавляем кнопку "назад" - будет вести на последнюю страницу если текущая первая
+    prev_page = (page - 1) % total_pages
+    pagination_buttons.append(InlineKeyboardButton(
+        text="⬅️", callback_data=f"users_page_{prev_page}"))
+
+    # Добавляем кнопку с номером страницы
+    pagination_buttons.append(InlineKeyboardButton(
+        text=f"{page+1}/{total_pages}", callback_data="current_page"))
+
+    # Всегда добавляем кнопку "вперед" - будет вести на первую страницу если текущая последняя
+    next_page = (page + 1) % total_pages
+    pagination_buttons.append(InlineKeyboardButton(
+        text="➡️", callback_data=f"users_page_{next_page}"))
+
+    # Размещаем кнопки пагинации в один ряд
+    builder.row(*pagination_buttons)
 
     # Добавляем кнопку "В меню"
-    builder.button(text="В меню", callback_data="back_to_admin_menu")
-
-    # Все кнопки пользователей располагаем в столбец
-    builder.adjust(1, 1, 1, 1, 1, 2 if (
-        page > 0 and page < total_pages - 1) else 1, 1)
+    builder.row(InlineKeyboardButton(text="В меню",
+                callback_data="back_to_admin_menu"))
 
     return builder
 
